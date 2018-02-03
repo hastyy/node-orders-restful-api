@@ -1,5 +1,6 @@
 const express = require('express');
 
+const logger = require('./middleware/logger');
 const notFoundHandler = require('./middleware/not-found');
 const errorHandler = require('./middleware/error-handling');
 const productRoutes = require('./routes/products');
@@ -13,6 +14,9 @@ const orderRoutes = require('./routes/orders');
  */
 const PORT = process.env.PORT || 3000;
 const app = express();
+
+// Register a logging middleware.
+app.use(logger);
 
 /**
  * Wires the Router instances to their base URI by registering them as
