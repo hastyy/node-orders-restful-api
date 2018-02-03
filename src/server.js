@@ -1,5 +1,7 @@
 const express = require('express');
 
+const notFoundHandler = require('./middleware/not-found');
+const errorHandler = require('./middleware/error-handling');
 const productRoutes = require('./routes/products');
 const orderRoutes = require('./routes/orders');
 
@@ -18,6 +20,14 @@ const app = express();
  */
 app.use('/products', productRoutes);
 app.use('/orders', orderRoutes);
+
+/**
+ * Registers middleware for exceptional situations like a request for an
+ * unregistered route or an error thrown during the execution of a previous
+ * middleware (being it predicted or unpredicted).
+ */
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 /**
  * Initiates an HTTP server on port ${PORT}.

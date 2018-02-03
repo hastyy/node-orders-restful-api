@@ -5,11 +5,22 @@
   "main": "server.js",
   "scripts": {
     "start": "node src/server.js",
+    "start-watch": "nodemon src/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "keywords": [
+    "node",
+    "express",
+    "restful",
+    "api",
+    "orders"
+  ],
   "author": "hastyy",
   "license": "ISC",
   "dependencies": {
     "express": "^4.16.2"
+  },
+  "devDependencies": {
+    "nodemon": "^1.14.12"
   }
 }
