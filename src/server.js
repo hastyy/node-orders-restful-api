@@ -1,5 +1,9 @@
+// Setup environment variables according to the execution environment.
+require('./config/config');
+
 const express = require('express');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
 
 const logger = require('./middleware/logger');
 const disableCORS = require('./middleware/cors-disabler');
@@ -16,6 +20,9 @@ const orderRoutes = require('./routes/orders');
  */
 const PORT = process.env.PORT || 3000;
 const app = express();
+
+// Connect to the MongoDB database.
+mongoose.connect(process.env.MONGODB_URI);
 
 // Register a logging middleware.
 app.use(logger);

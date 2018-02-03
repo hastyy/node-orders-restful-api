@@ -1,45 +1,25 @@
 const { Router } = require('express');
 
+const ProductController = require('../controllers/products');
+
 
 // Gets a router instance.
 const router = new Router();
 
 // Handles incoming HTTP GET requests to /products.
-router.get('/', (req, res) => {
-    res.status(200).send({
-        message: 'Handling GET requests to /products'
-    });
-});
+router.get('/', ProductController.getAll);
 
 // Handles incoming HTTP POST requests to /products.
-router.post('/', (req, res) => {
-    res.status(200).send({
-        message: 'Handling POST requests to /products',
-        body: req.body
-    });
-});
+router.post('/', ProductController.createProduct);
 
 // Handles incoming HTTP GET requests to /products/:id.
-router.get('/:id', (req, res) => {
-    res.status(200).send({
-        message: `Handling GET requests to /products/${req.params.id}`
-    });
-});
+router.get('/:id', ProductController.getOne);
 
 // Handles incoming HTTP PATCH requests to /products/:id.
-router.patch('/:id', (req, res) => {
-    res.status(200).send({
-        message: `Handling PATCH requests to /products/${req.params.id}`,
-        body: req.body
-    });
-});
+router.patch('/:id', ProductController.updateProduct);
 
 // Handles incoming HTTP DELETE requests to /products/:id.
-router.delete('/:id', (req, res) => {
-    res.status(200).send({
-        message: `Handling DELETE requests to /products/${req.params.id}`
-    });
-});
+router.delete('/:id', ProductController.deleteProduct);
 
 
 // Exports the router so we can wire it to the /products route within Express.
