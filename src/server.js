@@ -1,6 +1,8 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 
 const logger = require('./middleware/logger');
+const disableCORS = require('./middleware/cors-disabler');
 const notFoundHandler = require('./middleware/not-found');
 const errorHandler = require('./middleware/error-handling');
 const productRoutes = require('./routes/products');
@@ -17,6 +19,19 @@ const app = express();
 
 // Register a logging middleware.
 app.use(logger);
+
+// Disables browsers CORS security mechanism.
+app.use(disableCORS);
+
+/**
+ * The bodyParser middlewares parse the body of the incoming HTTP request into a
+ * plain JavaScript object and make it available for the following middlewares
+ * through the req.body property.
+ * 
+ * { extended: false } -> Do not parse extended bodies with rich-data in them.
+ */
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
 /**
  * Wires the Router instances to their base URI by registering them as

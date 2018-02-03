@@ -14,7 +14,8 @@ router.get('/', (req, res) => {
 // Handles incoming HTTP POST requests to /products.
 router.post('/', (req, res) => {
     res.status(200).send({
-        message: 'Handling POST requests to /products'
+        message: 'Handling POST requests to /products',
+        body: req.body
     });
 });
 
@@ -28,7 +29,8 @@ router.get('/:id', (req, res) => {
 // Handles incoming HTTP PATCH requests to /products/:id.
 router.patch('/:id', (req, res) => {
     res.status(200).send({
-        message: `Handling PATCH requests to /products/${req.params.id}`
+        message: `Handling PATCH requests to /products/${req.params.id}`,
+        body: req.body
     });
 });
 

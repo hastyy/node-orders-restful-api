@@ -14,7 +14,8 @@ router.get('/', (req, res) => {
 // Handles incoming HTTP POST requests to /orders.
 router.post('/', (req, res) => {
     res.status(200).send({
-        message: 'Handling POST requests to /orders'
+        message: 'Handling POST requests to /orders',
+        body: req.body
     });
 });
 
