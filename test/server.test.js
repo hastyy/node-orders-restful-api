@@ -129,4 +129,71 @@ describe('ProductController', () => {
 
     });
 
+    describe('PATCH /products/:id', () => {
+
+        it('should update the product with specified valid id', (done) => {
+            const name = 'Nexus 6';
+            const price = 230;
+
+            request(app)
+                .patch(`${BASE_URI}/${products[1]._id.toHexString()}`)
+                .send({ name, price })
+                .expect(200)
+                .expect((res) => {
+                    const updatedProduct = res.body;
+                    
+                    expect(updatedProduct.name).not.toBe('Nexus 5');
+                    expect(updatedProduct.name).toBe(name);
+                    expect(updatedProduct.price).toBe(price);
+                })
+                .end(async (err, res) => {
+                    if (err) return done(err);
+
+                    const count = 
+                        await Product.find({ name: products[1].name }).count();
+                    
+                    expect(count).toBe(0);
+                    done();
+                });
+        });
+
+        it('should not update the product on invalid body data', (done) => {
+            const invalidPrice = 'This is invalid';
+
+            request(app)
+                .patch(`${BASE_URI}/${products[1]._id.toHexString()}`)
+                .send({ price: invalidPrice })
+                .expect(400)
+                .end(async (err, res) => {
+                    if (err) return done(err);
+
+                    const product = 
+                        await Product.findOne({ name: products[1].name });
+                    
+                    expect(product.price).toBe(products[1].price);
+                    done();
+                });
+        });
+
+        it('should not find the product with specified valid id', (done) => {
+            const newId = new mongoose.Types.ObjectId();
+
+            request(app)
+                .patch(`${BASE_URI}/${newId.toHexString()}`)
+                .expect(404)
+                .end(done);
+        });
+
+        it('should return 404 Not Found for invalid id', (done) => {
+            const invalidId = '123';
+
+            request(app)
+                .patch(`${BASE_URI}/${invalidId}`)
+                .send({})
+                .expect(404)
+                .end(done);
+        });
+
+    });
+
 });

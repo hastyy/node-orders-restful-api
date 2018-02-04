@@ -88,18 +88,47 @@ ProductController.getOne = async (req, res, next) => {
 };
 
 /**
- * Updates the product with id ${req.params.id} if one exists in the database.
+ * Updates the product with id ${req.params.id} in the Product collection, if
+ * such product exists, and sends the updated product back to the client.
+ * TODO: Only system admins should be able to create products (i.e. store 
+ * managers).
+ * 
+ * Possible HTTP responses:
+ *  - 201 Created
+ *  - 400 Bad Request
+ *  - 404 Not Found
  */
-ProductController.updateProduct = (req, res) => {
-    res.status(200).send({
-        message: `Handling PATCH requests to /products/${req.params.id}`,
-        body: req.body
-    });
+ProductController.updateProduct = async (req, res, next) => {
+    try {
+        if (!ObjectID.isValid(req.params.id))
+            return res.status(404).send();
+        
+        const id = req.params.id;
+        const updateProps = _.pick(req.body, ['name', 'price']);
+        const updatedProduct = await Product.findByIdAndUpdate(
+            id,
+            { $set: updateProps },
+            { new: true }   // return the updated document
+        );
+
+        if (updatedProduct === null)
+            return res.status(404).send();
+        
+        res.status(200).send(updatedProduct);
+    } catch (err) {
+        if (err.name === 'CastError') {
+            res.status(400).send({ error: err });
+        } else {
+            next(err);
+        }
+    }
 };
 
 /**
  * Deletes the product with id ${req.params.id} from the database if such
  * document exists.
+ * It only the newly created product to the database if it meets all of the
+ * Schema criteria.
  */
 ProductController.deleteProduct = (req, res) => {
     res.status(200).send({
