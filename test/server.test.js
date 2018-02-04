@@ -1,5 +1,6 @@
 const expect = require('expect');
 const request = require('supertest');
+const mongoose = require('mongoose');
 
 const app = require('../src/server');
 const Product = require('../src/models/product');
@@ -19,7 +20,6 @@ describe('ProductController', () => {
                 .get(BASE_URI)
                 .expect(200)
                 .expect((res) => {
-                    console.log('My response:', res);
                     expect(res.body.products.length).toBe(products.length);
                 })
                 .end(done);
@@ -92,6 +92,39 @@ describe('ProductController', () => {
                         done(err);
                     }
                 });
+        });
+
+    });
+
+    describe('GET /products/:id', () => {
+
+        it('should find the product with specified valid id', (done) => {
+            request(app)
+                .get(`${BASE_URI}/${products[0]._id.toHexString()}`)
+                .expect(200)
+                .expect((res) => {
+                    expect(res.body.name).toBe(products[0].name);
+                    expect(res.body.price).toBe(products[0].price);
+                })
+                .end(done);
+        });
+
+        it('should not find the product with specified valid id', (done) => {
+            const newId = new mongoose.Types.ObjectId();
+
+            request(app)
+                .get(`${BASE_URI}/${newId.toHexString()}`)
+                .expect(404)
+                .end(done);
+        });
+
+        it('should return 404 Not Found for invalid id', (done) => {
+            const invalidId = '123';
+
+            request(app)
+                .get(`${BASE_URI}/${invalidId}`)
+                .expect(404)
+                .end(done);
         });
 
     });

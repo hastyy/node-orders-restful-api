@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const { ObjectID } = require('mongodb');
 
 const Product = require('../models/product');
 
@@ -23,7 +24,7 @@ ProductController.getAll = async (req, res, next) => {
     try {
         const criteria = _.pick(req.query, ['name', 'price']);
         const products = await Product.find(criteria);
-        
+
         res.status(200).send({ products });
     } catch (err) {
         next(err);
@@ -61,12 +62,29 @@ ProductController.createProduct = async (req, res, next) => {
 };
 
 /**
- * Return the product with id ${req.params.id} if one exists in the database.
+ * Find the product with id ${req.params.id} in the Product collection and if
+ * the product is found, send it to the client.
+ * Any API user can see a specified product.
+ * 
+ * Possible HTTP responses:
+ *  - 200 OK
+ *  - 404 Not Found
  */
-ProductController.getOne = (req, res) => {
-    res.status(200).send({
-        message: `Handling GET requests to /products/${req.params.id}`
-    });
+ProductController.getOne = async (req, res, next) => {
+    try {
+        if (!ObjectID.isValid(req.params.id))
+            return res.status(404).send();
+
+        const id = req.params.id;
+        const product = await Product.findById(id);
+
+        if (product === null)
+            return res.status(404).send();
+        
+        res.status(200).send(product);
+    } catch (err) {
+        next(err);
+    }
 };
 
 /**
