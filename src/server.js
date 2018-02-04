@@ -24,8 +24,10 @@ const app = express();
 // Connect to the MongoDB database.
 mongoose.connect(process.env.MONGODB_URI);
 
-// Register a logging middleware.
-app.use(logger);
+// Register a logging middleware. Disabled for testing environment.
+if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'test') {
+    app.use(logger);
+}
 
 // Disables browsers CORS security mechanism.
 app.use(disableCORS);

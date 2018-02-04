@@ -18,8 +18,16 @@ const { Schema } = require('mongoose');
  * the Product Collection in our MongoDB database.
  */
 const productSchema = new Schema({
-    name: String,
-    price: Number
+    name: {
+        type: String,
+        required: true,
+        trim: true,
+        minlength: 1
+    },
+    price: {
+        type: Number,
+        required: true
+    }
 });
 
 /**

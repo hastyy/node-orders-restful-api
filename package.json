@@ -6,8 +6,11 @@
   "scripts": {
     "start": "node src/server.js",
     "start-watch": "nodemon src/server.js",
-    "test": "export NODE_ENV=test || SET \"NODE_ENV=test\" && mocha test/**/*.test.js",
+    "test": "export NODE_ENV=test || SET \"NODE_ENV=test\" && mocha test/**/*.test.js --exit",
     "test-watch": "nodemon --exec \"npm test\""
+  },
+  "engines": {
+    "node": "8.5.0"
   },
   "keywords": [
     "node",
