@@ -63,3 +63,7 @@ app.use(errorHandler);
  * ->   http.createServer(app).listen(PORT, callback);
  */
 app.listen(PORT, () => console.log(`Server started on PORT ${PORT}`));
+
+
+// Export for testing purposes.
+module.exports = app;
