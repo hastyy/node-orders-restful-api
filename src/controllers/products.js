@@ -90,11 +90,11 @@ ProductController.getOne = async (req, res, next) => {
 /**
  * Updates the product with id ${req.params.id} in the Product collection, if
  * such product exists, and sends the updated product back to the client.
- * TODO: Only system admins should be able to create products (i.e. store 
+ * TODO: Only system admins should be able to update products (i.e. store 
  * managers).
  * 
  * Possible HTTP responses:
- *  - 201 Created
+ *  - 200 OK
  *  - 400 Bad Request
  *  - 404 Not Found
  */
@@ -125,15 +125,30 @@ ProductController.updateProduct = async (req, res, next) => {
 };
 
 /**
- * Deletes the product with id ${req.params.id} from the database if such
- * document exists.
- * It only the newly created product to the database if it meets all of the
- * Schema criteria.
+ * Deletes the product with id ${req.params.id} from the Product collection,
+ * if such product exists, and sends the deleted product back to the client.
+ * TODO: Only system admins should be able to delete products (i.e. store 
+ * managers).
+ * 
+ * Possible HTTP responses:
+ *  - 200 OK
+ *  - 404 Not Found
  */
-ProductController.deleteProduct = (req, res) => {
-    res.status(200).send({
-        message: `Handling DELETE requests to /products/${req.params.id}`
-    });
+ProductController.deleteProduct = async (req, res, next) => {
+    try {
+        if (!ObjectID.isValid(req.params.id))
+            return res.status(404).send();
+
+        const id = req.params.id;
+        const deletedProduct = await Product.findByIdAndRemove(id);
+
+        if (deletedProduct === null)
+            return res.status(404).send();
+        
+        res.status(200).send(deletedProduct);
+    } catch (err) {
+        next(err);
+    }
 };
 
 

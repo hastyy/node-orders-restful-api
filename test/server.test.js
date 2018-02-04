@@ -196,4 +196,54 @@ describe('ProductController', () => {
 
     });
 
+    describe('DELETE /products/:id', () => {
+
+        it('should remove the product with specified valid id', (done) => {
+            const id = products[0]._id.toHexString();
+
+            request(app)
+                .delete(`${BASE_URI}/${id}`)
+                .expect(200)
+                .expect((res) => {
+                    const deletedProduct = res.body;
+
+                    expect(deletedProduct._id).toBe(id);
+                    expect(deletedProduct.name).toBe(products[0].name);
+                    expect(deletedProduct.price).toBe(products[0].price);
+                })
+                .end(async (err, res) => {
+                    if (err) return done(err);
+
+                    const [product, count] = await Promise.all([
+                        Product.findById(id),
+                        Product.find().count()
+                    ]);
+
+                    expect(product).toBeFalsy();
+                    expect(count).toBe(products.length - 1);
+
+                    done();
+                });
+        });
+
+        it('should not find the product with specified valid id', (done) => {
+            const newId = new mongoose.Types.ObjectId();
+
+            request(app)
+                .delete(`${BASE_URI}/${newId.toHexString()}`)
+                .expect(404)
+                .end(done);
+        });
+
+        it('should return 404 Not Found for invalid id', (done) => {
+            const invalidId = '123';
+
+            request(app)
+                .delete(`${BASE_URI}/${invalidId}`)
+                .expect(404)
+                .end(done);
+        });
+
+    });
+
 });
