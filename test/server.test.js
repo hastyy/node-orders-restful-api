@@ -4,7 +4,13 @@ const mongoose = require('mongoose');
 
 const app = require('../src/server');
 const Product = require('../src/models/product');
-const { products, populateProducts } = require('./seed/seed');
+const User = require('../src/models/user');
+const {
+    products,
+    populateProducts,
+    users,
+    populateUsers
+} = require('./seed/seed');
 
 
 describe('ProductController', () => {
@@ -51,9 +57,11 @@ describe('ProductController', () => {
                 .send(product)
                 .expect(201)
                 .expect((res) => {
-                    expect(res.body.product._id).toBeDefined();
-                    expect(res.body.product.name).toBe(product.name);
-                    expect(res.body.product.price).toBe(product.price);
+                    const newProduct = res.body;
+
+                    expect(newProduct._id).toBeDefined();
+                    expect(newProduct.name).toBe(product.name);
+                    expect(newProduct.price).toBe(product.price);
                 })
                 .end(async (err, res) => {
                     if (err) return done(err);
@@ -242,6 +250,83 @@ describe('ProductController', () => {
                 .delete(`${BASE_URI}/${invalidId}`)
                 .expect(404)
                 .end(done);
+        });
+
+    });
+
+});
+
+describe('UsersController', () => {
+
+    const BASE_URI = '/users';
+
+    beforeEach(populateUsers);
+
+    describe('POST /users', () => {
+
+        it('should create a user', (done) => {
+            const email = 'example@example.com';
+            const password = '123mnb!';
+
+            request(app)
+                .post(BASE_URI)
+                .send({ email, password })
+                .expect(201)
+                .expect((res) => {
+                    const newUser = res.body;
+
+                    expect(res.headers['x-auth']).toBeDefined();
+                    expect(newUser._id).toBeDefined();
+                    expect(newUser.email).toBe(email);
+                    expect(newUser.password).toBe(password);
+                })
+                .end(async (err, res) => {
+                    if (err) done(err);
+
+                    const user = await User.findOne({ email });
+                    expect(user).toBeDefined();
+                    // TODO: expect(user.password).not.toBe(password);
+
+                    const count = await User.find().count();
+                    expect(count).toBe(users.length + 1);
+
+                    done();
+                });
+        });
+
+        it('should not create user with invalid email/password', (done) => {
+            const email = 'invalid-email.com';
+            const password = '';
+
+            request(app)
+                .post(BASE_URI)
+                .send({ email, password })
+                .expect(400)
+                .end(async (err, res) => {
+                    if (err) return done(err);
+
+                    const count = await User.find().count();
+                    expect(count).toBe(users.length);
+
+                    done();
+                });
+        });
+
+        it('should not create user if email in use', (done) => {
+            const { email, password } = users[0];
+
+            request(app)
+                .post(BASE_URI)
+                .send({ email, password })
+                .expect(409)
+                .end(async (err, res) => {
+                    if (err) return done(err);
+
+                    const count = await User.find().count();
+                    expect(count).toBe(users.length);
+
+                    done();
+                });
         });
 
     });

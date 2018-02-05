@@ -4,7 +4,7 @@ const { ObjectID } = require('mongodb');
 const Product = require('../models/product');
 
 
-const ProductController = {};
+const ProductsController = {};
 
 /**
  * Fetch all the documents from the Product collection and send it as an array
@@ -20,7 +20,7 @@ const ProductController = {};
  * Possible HTTP responses:
  *  - 200 OK
  */
-ProductController.getAll = async (req, res, next) => {
+ProductsController.getAll = async (req, res, next) => {
     try {
         const criteria = _.pick(req.query, ['name', 'price']);
         const products = await Product.find(criteria);
@@ -43,7 +43,7 @@ ProductController.getAll = async (req, res, next) => {
  *  - 201 Created
  *  - 400 Bad Request
  */
-ProductController.createProduct = async (req, res, next) => {
+ProductsController.createProduct = async (req, res, next) => {
     try {
         const body = _.pick(req.body, ['name', 'price']);
         const product = new Product(body);
@@ -68,7 +68,7 @@ ProductController.createProduct = async (req, res, next) => {
  *  - 200 OK
  *  - 404 Not Found
  */
-ProductController.getOne = async (req, res, next) => {
+ProductsController.getOne = async (req, res, next) => {
     try {
         if (!ObjectID.isValid(req.params.id))
             return res.status(404).send();
@@ -96,7 +96,7 @@ ProductController.getOne = async (req, res, next) => {
  *  - 400 Bad Request
  *  - 404 Not Found
  */
-ProductController.updateProduct = async (req, res, next) => {
+ProductsController.updateProduct = async (req, res, next) => {
     try {
         if (!ObjectID.isValid(req.params.id))
             return res.status(404).send();
@@ -132,7 +132,7 @@ ProductController.updateProduct = async (req, res, next) => {
  *  - 200 OK
  *  - 404 Not Found
  */
-ProductController.deleteProduct = async (req, res, next) => {
+ProductsController.deleteProduct = async (req, res, next) => {
     try {
         if (!ObjectID.isValid(req.params.id))
             return res.status(404).send();
@@ -150,4 +150,4 @@ ProductController.deleteProduct = async (req, res, next) => {
 };
 
 
-module.exports = ProductController;
+module.exports = ProductsController;

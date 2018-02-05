@@ -1,3 +1,8 @@
+const _ = require('lodash');
+
+const User = require('../models/user');
+
+
 const UsersController = {};
 
 /**
@@ -16,10 +21,26 @@ const UsersController = {};
  *  - 400 Bad Request
  *  - 409 Conflict
  */
-UsersController.registerUser = (req, res) => {
-    res.status(200).send({
-        message: 'Handling POST requests to /users'
-    });
+UsersController.registerUser = async (req, res, next) => {
+    try {
+        const body = _.pick(req.body, ['email', 'password']);
+        const user = new User(body);
+
+        const savedUser = await user.save();
+        const token = await savedUser.generateAuthToken();
+
+        res.header('X-Auth', token).status(201).send(user);
+    } catch (err) {
+        if (err.name === 'ValidationError') {
+            res.status(400).send({ error: err });
+        } else if (err.name === 'BulkWriteError') {
+            res.status(409).send({
+                error: new Error().message = 'Email already in use.'
+            });
+        } else {
+            next(err);
+        }
+    }
 };
 
 /**

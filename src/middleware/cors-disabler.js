@@ -17,7 +17,7 @@ module.exports = (req, res, next) => {
         'X-Requested-With',
         'Content-Type',
         'Accept',
-        'Authorization'
+        'X-Auth'
     ];
     res.header(
         'Access-Control-Allow-Headers',
