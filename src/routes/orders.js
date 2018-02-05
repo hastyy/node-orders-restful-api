@@ -3,7 +3,7 @@ const { Router } = require('express');
 const OrdersController = require('../controllers/orders');
 
 
-// Gets a router instance.
+// Creates a router instance.
 const router = new Router();
 
 // Handles incoming HTTP GET requests to /orders.

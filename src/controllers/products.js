@@ -32,7 +32,7 @@ ProductController.getAll = async (req, res, next) => {
 };
 
 /**
- * Pick the 'name' and 'price' properties from the request body and instanciate
+ * Picks the 'name' and 'price' properties from the request body to instanciate
  * a new Product with those.
  * Saves the newly created product to the database if it meets all of the
  * Schema criteria.
@@ -49,9 +49,7 @@ ProductController.createProduct = async (req, res, next) => {
         const product = new Product(body);
 
         const savedProduct = await product.save();
-        res.status(201).send({
-            product: savedProduct
-        });
+        res.status(201).send(savedProduct);
     } catch (err) {
         if (err.name === 'ValidationError') {
             res.status(400).send({ error: err });

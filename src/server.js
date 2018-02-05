@@ -11,6 +11,7 @@ const notFoundHandler = require('./middleware/not-found');
 const errorHandler = require('./middleware/error-handling');
 const productRoutes = require('./routes/products');
 const orderRoutes = require('./routes/orders');
+const userRoutes = require('./routes/users');
 
 
 /**
@@ -48,6 +49,7 @@ app.use(bodyParser.json());
  */
 app.use('/products', productRoutes);
 app.use('/orders', orderRoutes);
+app.use('/users', userRoutes);
 
 /**
  * Registers middleware for exceptional situations like a request for an

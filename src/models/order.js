@@ -10,22 +10,33 @@ const mongoose = require('mongoose');
 const { Schema } = require('mongoose');
 
 
+const orderEntrySchema = new Schema({
+    _product: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Product',
+        required: true
+    },
+    quantity: {
+        type: Number,
+        default: 1
+    }
+});
+
 /**
  * The Schema defines the shape of the documents (objects) within a given
  * collection.
  * 
- * Here we define how a Product instance/document should look like inside of
- * the Product Collection in our MongoDB database.
+ * Here we define how an Order instance/document should look like inside of
+ * the Order Collection in our MongoDB database.
  */
-const productSchema = new Schema({
-    name: {
-        type: String,
-        required: true,
-        trim: true,
-        minlength: 1
+const orderSchema = new Schema({
+    products: {
+        type: [orderEntrySchema],
+        required: true
     },
-    price: {
-        type: Number,
+    _buyer: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
         required: true
     }
 });
@@ -37,10 +48,10 @@ const productSchema = new Schema({
  * All document creation and retrieval from the database is handled by these 
  * models.
  * 
- * Here we define the Product model from the productSchema, which we will use
- * throughout our application as we use classes to instantiate products.
+ * Here we define the Order model from the orderSchema, which we will use
+ * throughout our application as we use classes to instantiate orders.
  */
-const Product = mongoose.model('Product', productSchema);
+const Order = mongoose.model('Order', orderSchema);
 
 
-module.exports = Product;
+module.exports = Order;
