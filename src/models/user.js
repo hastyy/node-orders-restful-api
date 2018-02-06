@@ -10,6 +10,7 @@ const mongoose = require('mongoose');
 const { Schema } = require('mongoose');
 const { isEmail } = require('validator');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
 
 const tokenSchema = new Schema({
@@ -109,6 +110,72 @@ userSchema.methods.generateAuthToken = async function() {
 
     return token;
 };
+
+/**
+ * Register Mongoose middleware to run before (pre) a save event on the User
+ * collection.
+ * Here we hash the users password before saving the document to the database.
+ * To hash the password we take two steps:
+ *  - generate a salt to combine with the provided password in order for it to
+ *      represent a (much) less evident value. Here we have to assume that the
+ *      user provides a weak password like an english word and if we hashed this
+ *      password exactly as it is and save it to the database, it would be
+ *      vulnerable against hash look-up tables. If we hash 'icecreamsdfs'
+ *      instead of icecream, we have (much) better chances to be protected
+ *      against those.
+ *  - hash the password using the generated salt value
+ * To generate the salt we call bcrypt.genSalt(). The first argument is the
+ * number of rounds it should take to generate the salt. This is already slow
+ * by itself but the bigger the number of rounds, the slower it will get. We
+ * could increment this number in order to prevent bruteforce attacks but by
+ * increasing it we are slowing down our api. 10 is a fairly reasonable number.
+ * This functions calls a callback when it finishes, passing the generated salt
+ * value.
+ * Then we call bcrypt.hash() that takes the plaintext password, the salt value
+ * and a callback that will be called with the hashed password when hash()
+ * finishes. The hashed value we get from .hash() (in the callback) also stores
+ * a lot of useful information inside of the generated hash string, like the
+ * number of rounds used and the salt. For this, there's no reason to have both
+ * the password and the salt stored in the database: the password is enough. It
+ * is important to store the salt because it is generated solely for this one
+ * password, so bcrypt will need it to compare the hash with the plaintext
+ * password later (in logging in, for instance).
+ * Before we hash the password though, we have to check if we are modifying the
+ * password field from 'this' user instance in this save() operation. If we are,
+ * we must indeed hash the (new) password. If we are editing the user but not
+ * changing the password, the bcrypt logic must not run because otherwise we
+ * will be hashing the already hashed password in the database. The
+ * isModified(<field>) method on model instances tell us if a given field was
+ * modified since we fetched the user from the database. If we just created it
+ * and are about to save it, every field will be flagged as modified, hence we
+ * will always hash the passwords of the newly created users.
+ * Since this is a middleware we must call next().
+ * 
+ * In this case we must use the regular function syntax instead of an arrow
+ * function because of the 'this' reference binding. If we used an arrow
+ * function, 'this' would point to the global object. Using a regular function,
+ * 'this' points to the Model instance (user) calling the save() method. 
+ * To avoid confusion throughout the method logic, we initially assign 'this' to
+ * a more evident constant 'user'. 'user' will replace 'this' in our logic.
+ * 
+ */
+userSchema.pre('save', function(next) {
+    const user = this;
+
+    if (!user.isModified('password'))
+        return next();
+    
+    bcrypt.genSalt(10, (err, salt) => {
+        if (err) return next(err);
+
+        bcrypt.hash(user.password, salt, (err, hashedPassword) => {
+            if (err) return next(err);
+
+            user.password = hashedPassword;
+            next();
+        });
+    });
+});
 
 /**
  * Models are fancy constructors compiled from our Schema definitions.

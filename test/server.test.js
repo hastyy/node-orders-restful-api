@@ -278,14 +278,13 @@ describe('UsersController', () => {
                     expect(res.headers['x-auth']).toBeDefined();
                     expect(newUser._id).toBeDefined();
                     expect(newUser.email).toBe(email);
-                    expect(newUser.password).toBe(password);
                 })
                 .end(async (err, res) => {
                     if (err) done(err);
 
                     const user = await User.findOne({ email });
                     expect(user).toBeDefined();
-                    // TODO: expect(user.password).not.toBe(password);
+                    expect(user.password).not.toBe(password);
 
                     const count = await User.find().count();
                     expect(count).toBe(users.length + 1);
