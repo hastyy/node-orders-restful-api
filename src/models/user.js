@@ -112,6 +112,30 @@ userSchema.methods.generateAuthToken = async function() {
 };
 
 /**
+ * Schema.methods is a special property of Schema where we can register
+ * functions as methods to be available in the instances of the model using
+ * this schema.
+ * In this case we must use the regular function syntax instead of an arrow
+ * function because of the 'this' reference binding. If we used an arrow
+ * function, 'this' would point to the global object. Using a regular function,
+ * 'this' points to the Model instance (user) calling the method. To avoid
+ * confusion throughout the method logic, we initially assign 'this' to a more
+ * evident constant 'user'. 'user' will replace 'this' in our logic.
+ * 
+ * We receive a token as input and remove given token from the inner tokens
+ * collection of the user instance calling the method.
+ */
+userSchema.methods.removeToken = function(token) {
+    const user = this;
+
+    return user.update({
+        $pull: {
+            tokens: { token }
+        }
+    });
+};
+
+/**
  * Schema.statics is a special property of Schema where we can register
  * functions as methods to be available in the model using this schema. This can
  * be seen as an analogy to class methods in OOP, where the Model is the class
@@ -155,6 +179,43 @@ userSchema.statics.findByCredentials = async function(email, password) {
                 reject();
             }
         });
+    });
+};
+
+/**
+ * Schema.statics is a special property of Schema where we can register
+ * functions as methods to be available in the model using this schema. This can
+ * be seen as an analogy to class methods in OOP, where the Model is the class
+ * and Model.methods is the set of methods available in each class instance,
+ * whereas Model.statics is the set of static methods the class provides.
+ * In this case we must use the regular function syntax instead of an arrow
+ * function because of the 'this' reference binding. If we used an arrow
+ * function, 'this' would point to the global object. Using a regular function,
+ * 'this' points to the Model itself. To avoid confusion throughout the method
+ * logic, we initially assign 'this' to a more evident constant 'User'. 'User'
+ * will replace 'this' in our logic.
+ * 
+ * We receive a token string as input and we'll try to find the user that is the
+ * bearer of the token in the database.
+ * To do this we first have to call jwt.verify with the token and the secret
+ * used to sign the token in the first place (the process of generating a token,
+ * as well as an explaination on how JWT works can be found in the
+ * generateAuthToken() instance method). This method will throw an error if the
+ * token can't be decoded (i.e. it was mostly modified/forged).
+ * After decoding the token we have access to the data we encoded into it in the
+ * generation process, and this data has properties that can identify a user
+ * univocally, such as the _id.
+ * The final idea then is to know if the user exists AND contains the token in
+ * its token collection.
+ */
+userSchema.statics.findByToken = async function(token) {
+    const User = this;
+    const decodedUserData = jwt.verify(token, process.env.JWT_SECRET);
+
+    return await User.findOne({
+        _id: decodedUserData._id,
+        'tokens.access': 'auth',
+        'tokens.token': token
     });
 };
 

@@ -1,6 +1,7 @@
 const { Router } = require('express');
 
 const UsersController = require('../controllers/users');
+const checkAuthentication = require('../middleware/authenticate');
 
 
 // Creates a router instance.
@@ -13,7 +14,7 @@ router.post('/', UsersController.registerUser);
 router.post('/signin', UsersController.signUserIn);
 
 // Handles incoming HTTP DELETE requests to /users/signout.
-router.delete('/signout', UsersController.signUserOut);
+router.delete('/signout', checkAuthentication, UsersController.signUserOut);
 
 
 // Exports the router so we can wire it to the /users route within Express.

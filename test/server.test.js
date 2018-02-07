@@ -409,4 +409,23 @@ describe('UsersController', () => {
 
     });
 
+    describe('DELETE /users/signout', () => {
+
+        it('should remove auth token on user signout', (done) => {
+            request(app)
+                .delete(`${BASE_URI}/signout`)
+                .set('X-Auth', users[0].tokens[0].token)
+                .expect(200)
+                .end(async (err, res) => {
+                    if (err) done(err);
+
+                    const user = await User.findOne({ email: users[0].email });
+                    expect(user.tokens.length).toBe(0);
+
+                    done();
+                });
+        });
+
+    });
+
 });

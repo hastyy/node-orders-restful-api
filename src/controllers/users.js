@@ -79,12 +79,26 @@ UsersController.signUserIn = async (req, res, next) => {
 };
 
 /**
+ * If we reach this controller method it means that the client passed
+ * authentication. Because of this we will have to user instance and the token
+ * string available in the request object, which were provided by the
+ * authentication middleware.
+ * Here we must delete the available token from the available user's token
+ * collection.
  * 
+ * Possbile HTTP responses:
+ *  - 200 OK
  */
-UsersController.signUserOut = (req, res) => {
-    res.status(200).send({
-        message: 'Handling DELETE requests to /users/signout'
-    });
+UsersController.signUserOut = async (req, res, next) => {
+    try {
+        const user = req.user;
+        const token = req.token;
+
+        await user.removeToken(token);
+        res.status(200).send();
+    } catch (err) {
+        next(err);
+    }
 };
 
 
