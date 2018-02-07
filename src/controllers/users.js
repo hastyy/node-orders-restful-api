@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const { isEmail } = require('validator');
 
 const User = require('../models/user');
 
@@ -44,12 +45,37 @@ UsersController.registerUser = async (req, res, next) => {
 };
 
 /**
+ * Picks the 'email' and 'password' properties on the request body and tries to
+ * find a user matching those credentials.
+ * If a matching user is found, we generate an authentication token. Then we 
+ * attach the token to the response headers under the key 'X-Auth' and finally
+ * send the response to the user, containing the auth token in the header and 
+ * the user info in the body.
+ * The user info sent to the user is just a reduced view over the complete
+ * user document.
  * 
+ * Possbile HTTP responses:
+ *  - 201 Created
+ *  - 400 Bad Request
+ *  - 401 Unauthorized
  */
-UsersController.signUserIn = (req, res) => {
-    res.status(200).send({
-        message: 'Handling POST requests to /users/signin'
-    });
+UsersController.signUserIn = async (req, res, next) => {
+    try {
+        const { email, password } = _.pick(req.body, ['email', 'password']);
+
+        if (!email || !password || !isEmail(email))
+            return res.status(400).send();
+        
+        const user = await User.findByCredentials(email, password);
+        const token = await user.generateAuthToken();
+
+        res.header('X-Auth', token).status(200).send(user);
+    } catch (err) {
+        // findByCredentials rejection throws no error
+        if (!err) return res.status(401).send();
+
+        next(err);
+    }
 };
 
 /**

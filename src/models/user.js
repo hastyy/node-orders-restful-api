@@ -112,6 +112,53 @@ userSchema.methods.generateAuthToken = async function() {
 };
 
 /**
+ * Schema.statics is a special property of Schema where we can register
+ * functions as methods to be available in the model using this schema. This can
+ * be seen as an analogy to class methods in OOP, where the Model is the class
+ * and Model.methods is the set of methods available in each class instance,
+ * whereas Model.statics is the set of static methods the class provides.
+ * In this case we must use the regular function syntax instead of an arrow
+ * function because of the 'this' reference binding. If we used an arrow
+ * function, 'this' would point to the global object. Using a regular function,
+ * 'this' points to the Model itself. To avoid confusion throughout the method
+ * logic, we initially assign 'this' to a more evident constant 'User'. 'User'
+ * will replace 'this' in our logic.
+ * 
+ * First we try to find a user with given email. By our schema rules there
+ * should be either 0 or 1 users in the database with a provided valid email.
+ * If we find such user, we then check if the provided passwords matches the one
+ * stored.
+ * We know that the stored password is hashed so we have to use bcrypt.compare
+ * to compare them. bcrypt knows how to compare both passwords because the salt
+ * value used in the hash, the hash algorithm and the number of rounds necessary
+ * to generate the salt are all embedded within the hash (as well as the
+ * plaintext value, of course).
+ * If the passwords match, we return the user information.
+ * 
+ * In async functions we can either explicitly return values or we can resolve
+ * promises. Same with throwing errors / rejecting promises.
+ * If something goes wrong we call Promise.reject(). [For now] We call it
+ * without any arguments which is a little more flexible than throwing erros
+ * because it is equivalent to throw without an error.
+ */
+userSchema.statics.findByCredentials = async function(email, password) {
+    const User = this;
+    const user = await User.findOne({ email });
+
+    if (!user) return Promise.reject();
+
+    return new Promise((resolve, reject) => {
+        bcrypt.compare(password, user.password, (err, passwordsMatch) => {
+            if (passwordsMatch) {
+                resolve(user);
+            } else {
+                reject();
+            }
+        });
+    });
+};
+
+/**
  * Register Mongoose middleware to run before (pre) a save event on the User
  * collection.
  * Here we hash the users password before saving the document to the database.
@@ -157,7 +204,6 @@ userSchema.methods.generateAuthToken = async function() {
  * 'this' points to the Model instance (user) calling the save() method. 
  * To avoid confusion throughout the method logic, we initially assign 'this' to
  * a more evident constant 'user'. 'user' will replace 'this' in our logic.
- * 
  */
 userSchema.pre('save', function(next) {
     const user = this;

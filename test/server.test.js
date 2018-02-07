@@ -330,4 +330,83 @@ describe('UsersController', () => {
 
     });
 
+    describe('POST /users/signin', () => {
+
+        it('should log user in and return auth token', (done) => {
+            const { _id, email, password } = users[0];
+
+            request(app)
+                .post(`${BASE_URI}/signin`)
+                .send({ email, password })
+                .expect(200)
+                .expect((res) => {
+                    const user = res.body;
+
+                    expect(res.headers['x-auth']).toBeDefined();
+                    expect(user.email).toBe(email);
+                })
+                .end(async (err, res) => {
+                    if (err) return done(err);
+
+                    const user = await User.findById(_id);
+
+                    /* Expect the 2nd object to contain a subset of properties
+                    of the 1st one.
+                    We have to call toObject() on the user document because
+                    expect cannot parse all of Mongoose inner properties (like
+                    methods) and will throw an error. toObject() returns a new
+                    object from the user document containing only its raw data
+                    and leaving out all of the stuff from Mongoose.*/
+                    expect(user.toObject().tokens[1]).toMatchObject({
+                        access: 'auth',
+                        token: res.headers['x-auth']
+                    });
+
+                    done();
+                });
+        });
+
+        it('should return 401 Unauthorized on unregistered email', (done) => {
+            const email = 'unregistered@email.com';
+            const password = 'abc123!';
+
+            request(app)
+                .post(`${BASE_URI}/signin`)
+                .send({ email, password })
+                .expect(401)
+                .end(done);
+        });
+
+        it('should return 401 Unauthorized on unmatched password', (done) => {
+            const email = users[0].email;
+            const password = 'will_not_match';
+
+            request(app)
+                .post(`${BASE_URI}/signin`)
+                .send({ email, password })
+                .expect(401)
+                .end(done);
+        });
+
+        it('should return 400 Bad Request on missing credentials', (done) => {
+            request(app)
+                .post(`${BASE_URI}/signin`)
+                .send({})
+                .expect(400)
+                .end(done);
+        });
+
+        it('should return 400 Bad Request on invalid email', (done) => {
+            const invalidEmail = 'not-valid.com';
+            const password = 'abc123!';
+
+            request(app)
+                .post(`${BASE_URI}/signin`)
+                .send({ email: invalidEmail, password })
+                .expect(400)
+                .end(done);
+        });
+
+    });
+
 });
